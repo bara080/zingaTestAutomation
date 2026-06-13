@@ -1,0 +1,31 @@
+{
+  "id": "evt_test_account_updated_001",
+  "object": "event",
+  "api_version": "2024-12-18.acacia",
+  "created": 1736000000,
+  "data": {
+    "object": {
+      "id": "acct_test_zinga_sp_001",
+      "object": "account",
+      "business_type": "individual",
+      "charges_enabled": true,
+      "country": "US",
+      "default_currency": "usd",
+      "details_submitted": true,
+      "email": "sp@zingatest.com",
+      "payouts_enabled": true,
+      "requirements": {
+        "currently_due": [],
+        "eventually_due": [],
+        "past_due": [],
+        "pending_verification": [],
+        "disabled_reason": null
+      },
+      "type": "express"
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": null,
+  "type": "account.updated"
+}

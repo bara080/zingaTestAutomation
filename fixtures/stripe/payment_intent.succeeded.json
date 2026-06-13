@@ -1,0 +1,21 @@
+{
+  "id": "evt_test_pi_succeeded_001",
+  "object": "event",
+  "api_version": "2024-12-18.acacia",
+  "created": 1736000000,
+  "data": {
+    "object": {
+      "id": "pi_test_00000001",
+      "object": "payment_intent",
+      "amount": 5000,
+      "currency": "usd",
+      "status": "succeeded",
+      "latest_charge": "ch_test_00000001",
+      "metadata": {}
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": null,
+  "type": "payment_intent.succeeded"
+}

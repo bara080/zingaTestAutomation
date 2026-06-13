@@ -1,0 +1,28 @@
+{
+  "id": "evt_test_identity_verified_001",
+  "object": "event",
+  "api_version": "2024-12-18.acacia",
+  "created": 1736000000,
+  "data": {
+    "object": {
+      "id": "vs_test_00000001",
+      "object": "identity.verification_session",
+      "status": "verified",
+      "type": "document",
+      "metadata": {
+        "storeId": "store_1",
+        "accountId": "acct_test_zinga_sp_001"
+      },
+      "verified_outputs": {
+        "first_name": "Amani",
+        "last_name": "Johnson",
+        "dob": { "day": 15, "month": 4, "year": 1990 }
+      },
+      "last_error": null
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": null,
+  "type": "identity.verification_session.verified"
+}
