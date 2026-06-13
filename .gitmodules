@@ -1,0 +1,3 @@
+[submodule "zinga"]
+	path = zinga
+	url = https://github.com/bara080/Zinga.git
