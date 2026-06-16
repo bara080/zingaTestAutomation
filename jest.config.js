@@ -25,6 +25,14 @@ module.exports = {
   rootDir: __dirname,
   // Integration tests boot in-memory Mongo + Redis — give a generous timeout.
   testTimeout: 15000,
+  // Walk into the submodule's node_modules so tests can import the same
+  // mongoose / firebase-admin / express that Zinga uses in production.
+  // Requires `cd zinga/Backend && npm install` (and same for Frontend) — see README.
+  moduleDirectories: [
+    'node_modules',
+    '<rootDir>/zinga/Backend/node_modules',
+    '<rootDir>/zinga/Frontend/node_modules',
+  ],
   collectCoverageFrom: [
     '<rootDir>/zinga/Frontend/services/**/*.{ts,tsx}',
     '<rootDir>/zinga/Frontend/context/**/*.{ts,tsx}',
@@ -49,6 +57,9 @@ module.exports = {
       moduleNameMapper: frontendModuleNameMapper,
       moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
       testEnvironment: 'node',
+      // `__DEV__` is a React Native runtime global referenced by Frontend
+      // utils (e.g. loggers.ts) — define for unit tests in plain node env.
+      globals: { __DEV__: false },
       setupFiles: ['<rootDir>/helpers/sentryNoop.ts'],
     },
     {
@@ -65,16 +76,41 @@ module.exports = {
     {
       displayName: 'component',
       testMatch: ['<rootDir>/component/**/*.test.{ts,tsx}'],
-      preset: 'jest-expo',
-      moduleNameMapper: frontendModuleNameMapper,
-      // RNTL v12.4+ ships matchers built-in via extend-expect entry.
-      setupFiles: [
-        '@testing-library/react-native/extend-expect',
-        '<rootDir>/helpers/sentryNoop.ts',
-      ],
-      transformIgnorePatterns: [
-        'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)/)',
-      ],
+      // OLD: tried `preset: 'jest-expo'` + jsdom — clashed with Expo SDK 54's
+      // winter/fetch class-extension polyfill and RN's window setup.
+      // NEW: plain ts-jest + node env + RN mocked at module boundary.
+      // Component tests stay pure: render via react-test-renderer or
+      // RNTL's host-component tree without exercising RN runtime.
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      transform: {
+        '^.+\\.(ts|tsx)$': [
+          'ts-jest',
+          {
+            tsconfig: {
+              // OLD: shared tsconfig used `jsx: 'react-native'` which ts-jest
+              // can't emit standalone. Override to react-jsx for component tests.
+              jsx: 'react-jsx',
+              esModuleInterop: true,
+              allowSyntheticDefaultImports: true,
+              target: 'ES2022',
+              module: 'commonjs',
+              strict: true,
+              baseUrl: '.',
+              paths: { '@/*': ['zinga/Frontend/*'] },
+              types: ['jest', 'node'],
+            },
+          },
+        ],
+      },
+      moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+      moduleNameMapper: {
+        ...frontendModuleNameMapper,
+        // Stub the heavy RN/Expo packages component tests don't actually need
+        '^react-native$': '<rootDir>/helpers/reactNativeStub.ts',
+      },
+      setupFiles: ['<rootDir>/helpers/sentryNoop.ts'],
+      setupFilesAfterEnv: ['<rootDir>/helpers/rntlExtendExpect.ts'],
     },
     {
       displayName: 'integration',
@@ -85,7 +121,9 @@ module.exports = {
       },
       moduleFileExtensions: ['ts', 'js', 'json'],
       testEnvironment: 'node',
-      setupFiles: ['<rootDir>/helpers/integrationTeardown.ts'],
+      // `afterEach` needs Jest's test env loaded — setupFilesAfterEnv runs
+      // AFTER the framework is ready, unlike setupFiles which runs before.
+      setupFilesAfterEnv: ['<rootDir>/helpers/integrationTeardown.ts'],
     },
   ],
 };

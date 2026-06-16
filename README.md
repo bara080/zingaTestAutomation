@@ -89,6 +89,76 @@ The P0 reference tests cover the bug patterns that have hit production. If any o
 - Sentry is auto-mocked in test setup (`helpers/sentryNoop.ts`) so tests don't fire breadcrumbs.
 - The submodule is **read-only at test time**. If a test needs to modify Zinga code, the PR should land in Zinga first, then bump the submodule pin here.
 
+## E2E with Detox
+
+### One-time setup (per machine)
+
+```bash
+# 1. Apple developer tooling — needed even for simulator builds
+xcode-select --install
+
+# 2. CocoaPods (for iOS) — already installed if you use Expo locally
+sudo gem install cocoapods
+
+# 3. (Android only) Android Studio + Pixel 6 API 34 emulator from AVD Manager
+
+# 4. Detox CLI globally (optional, scripts work without it)
+npm install -g detox-cli
+```
+
+### Build the test target
+
+```bash
+cd /Users/bara080/bara/zingaTest
+
+# Make sure the submodule is up to date with the branch you want to test
+cd zinga && git checkout main-test && git pull && cd ..
+
+# Generate native iOS/Android projects from Expo
+cd zinga/Frontend && npx expo prebuild --platform ios --no-install && cd ../..
+
+# Install CocoaPods deps
+cd zinga/Frontend/ios && pod install && cd ../../..
+
+# Build the iOS test app (~10 min first time, ~2 min thereafter)
+npm run detox:build:ios
+```
+
+### Run the suite
+
+```bash
+# Make sure an iOS simulator is bootable (Xcode → Open Developer Tool → Simulator)
+npm run detox:test:ios
+
+# Or one spec
+npx detox test --configuration ios.sim.debug e2e/app-launch.test.ts
+```
+
+### Current E2E tests
+
+| File | What it covers |
+|---|---|
+| `e2e/app-launch.test.ts` | Smoke — app launches, welcome screen visible |
+| `e2e/sp-onboarding.test.ts` | SP signup → identity sheet → optimistic "verifying" state → banner clears |
+
+### testIDs required in Frontend (separate PR)
+
+The E2E specs reference testIDs that **do not yet exist** in the Frontend code. Before these tests pass, add `testID="..."` props in the matching components:
+
+| testID | File |
+|---|---|
+| `welcomeSignIn` | `Frontend/app/(auth)/welcome.tsx` |
+| `welcomeSignUp` | `Frontend/app/(auth)/welcome.tsx` |
+| `roleCardServiceProvider`, `roleContinue` | `Frontend/app/(auth)/register/role.tsx` |
+| `registerFirstName`, `registerLastName`, `registerEmail`, `registerPassword`, `registerTermsCheckbox`, `registerCreateAccount` | `Frontend/components/registration/RegistrationAccountCustomer.tsx` + SP equivalent |
+| `stripeIdentityBanner`, `stripeIdentityBannerCTA` | `Frontend/components/dashboard/StripeAlertBanner.tsx` |
+
+File these as a TODO once you decide the testID naming convention. Treat the E2E test as a contract — when each testID lands, the corresponding step starts passing.
+
+### Why Detox for this work (and not RNTL component tests)
+
+RNTL v12 + Expo SDK 54's `winter/fetch` polyfill clash inside jest-expo. Component tests at the React-renderer level can't currently boot the app without crashing on the polyfill. Detox bypasses this — it tests the *built* app from outside, not the JS module graph. Trade-off: slower, but more realistic and immune to bundler issues.
+
 ## CI
 
 Two coordinated workflows:

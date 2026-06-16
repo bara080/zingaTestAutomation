@@ -23,18 +23,23 @@ jest.mock('@/lib/sentry', () => ({
   sentryFlags: { diagnosticsEnabled: false },
 }));
 
-// Backend uses @sentry/node directly.
-jest.mock('@sentry/node', () => ({
-  init: jest.fn(),
-  captureException: jest.fn(),
-  captureMessage: jest.fn(),
-  addBreadcrumb: jest.fn(),
-  setTag: jest.fn(),
-  setContext: jest.fn(),
-  withScope: (cb: (scope: unknown) => void) =>
-    cb({
-      setTag: jest.fn(),
-      setContext: jest.fn(),
-      setFingerprint: jest.fn(),
-    }),
-}));
+// Backend uses @sentry/node directly. Marked virtual so this mock also
+// applies when @sentry/node isn't installed in the resolved tree (Frontend tests).
+jest.mock(
+  '@sentry/node',
+  () => ({
+    init: jest.fn(),
+    captureException: jest.fn(),
+    captureMessage: jest.fn(),
+    addBreadcrumb: jest.fn(),
+    setTag: jest.fn(),
+    setContext: jest.fn(),
+    withScope: (cb: (scope: unknown) => void) =>
+      cb({
+        setTag: jest.fn(),
+        setContext: jest.fn(),
+        setFingerprint: jest.fn(),
+      }),
+  }),
+  { virtual: true },
+);

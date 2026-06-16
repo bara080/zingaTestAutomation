@@ -12,15 +12,20 @@ import request from 'supertest';
 import { startMongo, stopMongo } from '../../helpers/mongoSetup';
 import { resetRedis } from '../../helpers/redisSetup';
 
-// Mock Firebase Admin so createUser doesn't hit live
-jest.mock('firebase-admin', () => ({
-  auth: () => ({
-    createUser: jest.fn().mockResolvedValue({ uid: 'firebase_uid_test' }),
+// Mock Firebase Admin so createUser doesn't hit live.
+// `virtual: true` so we don't require firebase-admin to be installed in zingaTest.
+jest.mock(
+  'firebase-admin',
+  () => ({
+    auth: () => ({
+      createUser: jest.fn().mockResolvedValue({ uid: 'firebase_uid_test' }),
+    }),
+    initializeApp: jest.fn(),
+    credential: { cert: jest.fn() },
+    apps: [],
   }),
-  initializeApp: jest.fn(),
-  credential: { cert: jest.fn() },
-  apps: [],
-}));
+  { virtual: true },
+);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const app = require('../../zinga/Backend/api/app');

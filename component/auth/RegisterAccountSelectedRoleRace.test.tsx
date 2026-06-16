@@ -8,13 +8,17 @@ import { render, waitFor } from '@testing-library/react-native';
 
 const replaceMock = jest.fn();
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    replace: replaceMock,
-    canGoBack: () => true,
-    back: jest.fn(),
+jest.mock(
+  'expo-router',
+  () => ({
+    useRouter: () => ({
+      replace: replaceMock,
+      canGoBack: () => true,
+      back: jest.fn(),
+    }),
   }),
-}));
+  { virtual: true },
+);
 
 let mockRegister: any;
 jest.mock('@/context/RegisterProvider', () => ({

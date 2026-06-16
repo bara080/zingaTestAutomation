@@ -19,3 +19,6 @@ artifacts/
 # Build output
 dist/
 build/
+
+# Local scratch notes (not for the repo)
+workflow_dispatch.md

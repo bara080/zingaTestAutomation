@@ -23,8 +23,9 @@
     "unit/**/*",
     "component/**/*",
     "integration/**/*",
+    "e2e/**/*",
     "helpers/**/*",
     "fixtures/**/*"
   ],
-  "exclude": ["node_modules", "zinga", "e2e", "coverage"]
+  "exclude": ["node_modules", "zinga", "coverage"]
 }
