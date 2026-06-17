@@ -20,5 +20,5 @@ artifacts/
 dist/
 build/
 
-# Local scratch notes (not for the repo)
-workflow_dispatch.md
+# Local notes — no markdown is tracked in this repo
+*.md
